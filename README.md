@@ -10,7 +10,7 @@ run python manage.py runserver
 # api
 endpoints:
 
-# POST
+# POST  - get refresh and access token
 http://127.0.0.1:8000/users/oauth
 ```
 {
@@ -29,24 +29,49 @@ Response
 }
 
 ```
-# To next api endpoints we need to send access_token
+# POST - get access token 
+http://127.0.0.1:8000/users/api/token/refresh
+{
+    "refresh": <refresh_token>
+}
 
 #GET
 http://127.0.0.1:8000/users/me
 
-#POST
+
+
+#POST - create project
 127.0.0.1:8000/projects
 {
     'name': '<project name>'
     'company_name': '<company_name>'
 }
-
-# GET
+# GET - get all projects assigment to user or project info by id
 127.0.0.1:8000/projects
-{
-    list of user ids
-}
+127.0.0.1:8000/projects/<project_id>
+# PATCH - update project
 127.0.0.1:8000/projects/<project_id>
 {
-    project detail
+    'name': '<new project name>'
 }
+# DELETE - delete project
+127.0.0.1:8000/projects/<project_id>
+
+
+#POST - create localizations for project
+127.0.0.1:8000/localization
+{
+    'project': '<project_id>'
+    'place': '<place_name>'
+}
+# GET - get all localization assigment to project or localization info by id
+127.0.0.1:8000/localization/
+127.0.0.1:8000/localization/<project_id>/<localization_id>
+# PATCH - update localization
+127.0.0.1:8000/projects/<project_id>
+{
+    'place': '<new place name>'
+}
+# DELETE - delete localization
+127.0.0.1:8000/localization/<project_id>/<localization_id>
+

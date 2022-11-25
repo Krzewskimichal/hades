@@ -37,4 +37,3 @@ class InventoryStatusModelSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.InventoryStatusModel
         fields = '__all__'
-
