@@ -122,7 +122,7 @@ inventory_item_status -> 127.0.0.1:8000/inventory-status/<project_id>
 # Add user to project
 
 ### POST
-127.0.0.1:8000/project_users/<project_id>/<user_id>
+127.0.0.1:8000/project_users/<project_id>
 {
     "email": "<user_email>",
     "role": "OW"/"AD"/"WA"/"EM"
