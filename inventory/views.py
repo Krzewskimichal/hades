@@ -11,6 +11,7 @@ from collections.abc import Iterable
 from django.contrib.auth.models import User
 from django.shortcuts import get_list_or_404
 
+from users.serializers import UserSerializer
 from inventory.serializers import InventoryModelSerializer, ProjectModelSerializer, UserProjectModelSerializer,\
     LocalizationModelSerializer, InventoryStatusModelSerializer, InventoryTypeModelSerializer
 from inventory.models import InventoryModel, ProjectModel, UserProjectModel, LocalizationModel, InventoryStatusModel,\
@@ -193,7 +194,7 @@ def inventory_type_crud(request: Request, project_id=None, pk=None) -> Response:
 @permission_classes([IsAuthenticated])
 def inventory_crud(request: Request, project_id=None, pk=None) -> Response:
     """
-        crud for inventory status available in project
+        crud for inventory item available in project
     """
 
     logged_user = check_token(request)
@@ -231,3 +232,50 @@ def inventory_crud(request: Request, project_id=None, pk=None) -> Response:
             return Response({'message': f"type {inventory_item.name} has been deleted"}, status=status.HTTP_200_OK)
         return Response({'message': f"Missing type id!"}, status=status.HTTP_400_BAD_REQUEST)
     return Response({'message': 'invalid method'}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
+
+
+@api_view(['GET', 'POST', 'PATCH', 'DELETE'])
+@permission_classes([IsAuthenticated])
+def project_users(request: Request, project_id=None, pk=None) -> Response:
+    """
+        crud for managing users in project
+    """
+
+    logged_user = check_token(request)
+    if request.method == 'GET':
+        if pk:
+            user = get_object_or_404(User, id=pk)
+            serializer = UserSerializer(user)
+        else:
+            user_ids = [user.user_id for user in UserProjectModel.objects.filter(project_id=project_id)]
+            print(user_ids)
+            users = get_list_or_404(User, id__in=user_ids)
+            #  todo add user role
+            serializer = UserSerializer(users, many=True)
+        return Response(serializer.data)
+    elif request.method == 'POST':
+        if not request.data.get('email'):
+            return Response({'message': 'missing user email'}, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            user = get_object_or_404(User, email=request.data.get('email'))
+            user_project = UserProjectModel(project_id=project_id, user_id=user.id, role=request.data.get('role'))
+            user_project.save()
+            return Response({'message': f"Add user to project"}, status=status.HTTP_200_OK)
+        except django.db.utils.IntegrityError:
+            return Response({'message': 'missing requirement parameters'}, status=status.HTTP_400_BAD_REQUEST)
+    # elif request.method == 'PATCH':
+    #     if pk:
+    #         user_project = get_object_or_404(UserProjectModel, id=pk)
+    #         serializer = InventoryModelSerializer(inventory_item, data=request.data, partial=True)
+    #         if serializer.is_valid():
+    #             serializer.save()
+    #             return Response({'message': f"Item {inventory_item.name} updated"}, status=status.HTTP_200_OK)
+    #         return Response({'message': f"Cannot update {inventory_item.name} item, data invalid"}, status=status.HTTP_400_BAD_REQUEST)
+    #     return Response({'message': f"Missing item id!"}, status=status.HTTP_400_BAD_REQUEST)
+    # elif request.method == 'DELETE':
+    #     if pk:
+    #         inventory_item = get_object_or_404(InventoryModel, id=pk)
+    #         inventory_item.delete()
+    #         return Response({'message': f"type {inventory_item.name} has been deleted"}, status=status.HTTP_200_OK)
+    #     return Response({'message': f"Missing type id!"}, status=status.HTTP_400_BAD_REQUEST)
+    # return Response({'message': 'invalid method'}, status=status.HTTP_405_METHOD_NOT_ALLOWED)

@@ -119,3 +119,18 @@ inventory_item_status -> 127.0.0.1:8000/inventory-status/<project_id>
 ### DELETE - delete item
 127.0.0.1:8000/inventory-item/<project_id>/<item_id>
 
+# Add user to project
+
+### POST
+127.0.0.1:8000/project_users/<project_id>/<user_id>
+{
+    "email": "<user_email>",
+    "role": "OW"/"AD"/"WA"/"EM"
+
+}
+roles:
+'OW': 'Owner'
+'AD': 'Admin'
+'WA': 'Warehouseman'
+'EM': 'Employee'
+

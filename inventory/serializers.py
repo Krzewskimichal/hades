@@ -1,3 +1,4 @@
+from django.contrib.auth.models import User
 from rest_framework import serializers
 
 from inventory import models
@@ -37,3 +38,12 @@ class InventoryStatusModelSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.InventoryStatusModel
         fields = '__all__'
+
+
+#  todo join serializer
+class UserProjectSerializer(serializers.ModelSerializer):
+    role = serializers.CharField(max_length=10)
+
+    class Meta:
+        model = User
+        fields = ('id', 'first_name', 'last_name', 'email', 'role', 'date_joined')
