@@ -14,5 +14,8 @@ urlpatterns = [
     path('inventory-status/<str:project_id>/<str:pk>', views.inventory_status_crud, name="inventory_status_crud"),
 
     path('inventory-type/<str:project_id>', views.inventory_type_crud, name="inventory_type_crud"),
-    path('inventory-type/<str:project_id>/<str:pk>', views.inventory_type_crud, name="inventory_type_crud")
+    path('inventory-type/<str:project_id>/<str:pk>', views.inventory_type_crud, name="inventory_type_crud"),
+
+    path('inventory-item/<str:project_id>', views.inventory_crud, name="inventory_crud"),
+    path('inventory-item/<str:project_id>/<str:pk>', views.inventory_crud, name="inventory_crud")
 ]

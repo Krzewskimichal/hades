@@ -60,12 +60,12 @@ class InventoryModel(models.Model):
     brand = models.CharField(max_length=256, blank=True)
     model = models.CharField(max_length=256, blank=True)
     localization = models.ForeignKey(LocalizationModel, on_delete=models.SET_NULL, null=True)
-    serial_number = models.CharField(max_length=256)
+    serial_number = models.CharField(max_length=256, null=True)
     status = models.ForeignKey(InventoryStatusModel, on_delete=models.SET_NULL, null=True)
     employee = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
     project = models.ForeignKey(ProjectModel, on_delete=models.SET_NULL, null=True)
-    qr_key = models.UUIDField(primary_key=False, default=uuid.uuid4, editable=True)
-    custom_field = models.JSONField(max_length=2048)
+    qr_key = models.UUIDField(primary_key=False, default=uuid.uuid4, editable=True, null=True)
+    custom_field = models.JSONField(max_length=2048, null=True)
 
     def __str__(self):
         return self.name

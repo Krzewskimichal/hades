@@ -205,27 +205,29 @@ def inventory_crud(request: Request, project_id=None, pk=None) -> Response:
             inventory = InventoryModel.objects.filter(project_id=project_id)
             serializer = InventoryModelSerializer(inventory, many=True)
         return Response(serializer.data)
-    # elif request.method == 'POST':
-    #     try:
-    #         project = get_object_or_404(InventoryModel, id=project_id)
-    #         inventory_type = InventoryTypeModel(project_id=project.id, data=request.data)
-    #         inventory_type.save()
-    #         return Response({'message': f"Type: {inventory_type.name} add to {project.name} project"}, status=status.HTTP_200_OK)
-    #     except django.db.utils.IntegrityError:
-    #         return Response({'message': 'missing requirement parameters'}, status=status.HTTP_400_BAD_REQUEST)
-    # elif request.method == 'PATCH':
-    #     if pk:
-    #         inventory_type = get_object_or_404(InventoryTypeModel, id=pk)
-    #         serializer = InventoryTypeModelSerializer(inventory_type, data=request.data, partial=True)
-    #         if serializer.is_valid():
-    #             serializer.save()
-    #             return Response({'message': f"type {inventory_type.name} updated"}, status=status.HTTP_200_OK)
-    #         return Response({'message': f"Cannot update {inventory_type.name} type, data invalid"}, status=status.HTTP_400_BAD_REQUEST)
-    #     return Response({'message': f"Missing type id!"}, status=status.HTTP_400_BAD_REQUEST)
-    # elif request.method == 'DELETE':
-    #     if pk:
-    #         inventory_type = get_object_or_404(InventoryTypeModel, id=pk)
-    #         inventory_type.delete()
-    #         return Response({'message': f"type {inventory_type.name} has been deleted"}, status=status.HTTP_200_OK)
-    #     return Response({'message': f"Missing type id!"}, status=status.HTTP_400_BAD_REQUEST)
-    # return Response({'message': 'invalid method'}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
+    elif request.method == 'POST':
+        try:
+            project = get_object_or_404(ProjectModel, id=project_id)
+            inventory_item = InventoryModel(project_id=project.id, name=request.data.get('name'))
+            serializer = InventoryModelSerializer(inventory_item, data=request.data)
+            if serializer.is_valid():
+                serializer.save()
+            return Response({'message': f"Inventory item: {inventory_item.name} add to {project.name} project"}, status=status.HTTP_200_OK)
+        except django.db.utils.IntegrityError:
+            return Response({'message': 'missing requirement parameters'}, status=status.HTTP_400_BAD_REQUEST)
+    elif request.method == 'PATCH':
+        if pk:
+            inventory_item = get_object_or_404(InventoryModel, id=pk)
+            serializer = InventoryModelSerializer(inventory_item, data=request.data, partial=True)
+            if serializer.is_valid():
+                serializer.save()
+                return Response({'message': f"Item {inventory_item.name} updated"}, status=status.HTTP_200_OK)
+            return Response({'message': f"Cannot update {inventory_item.name} item, data invalid"}, status=status.HTTP_400_BAD_REQUEST)
+        return Response({'message': f"Missing item id!"}, status=status.HTTP_400_BAD_REQUEST)
+    elif request.method == 'DELETE':
+        if pk:
+            inventory_item = get_object_or_404(InventoryModel, id=pk)
+            inventory_item.delete()
+            return Response({'message': f"type {inventory_item.name} has been deleted"}, status=status.HTTP_200_OK)
+        return Response({'message': f"Missing type id!"}, status=status.HTTP_400_BAD_REQUEST)
+    return Response({'message': 'invalid method'}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
