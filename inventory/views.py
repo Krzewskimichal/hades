@@ -272,10 +272,9 @@ def project_users(request: Request, project_id=None, pk=None) -> Response:
     #             return Response({'message': f"Item {inventory_item.name} updated"}, status=status.HTTP_200_OK)
     #         return Response({'message': f"Cannot update {inventory_item.name} item, data invalid"}, status=status.HTTP_400_BAD_REQUEST)
     #     return Response({'message': f"Missing item id!"}, status=status.HTTP_400_BAD_REQUEST)
-    # elif request.method == 'DELETE':
-    #     if pk:
-    #         inventory_item = get_object_or_404(InventoryModel, id=pk)
-    #         inventory_item.delete()
-    #         return Response({'message': f"type {inventory_item.name} has been deleted"}, status=status.HTTP_200_OK)
-    #     return Response({'message': f"Missing type id!"}, status=status.HTTP_400_BAD_REQUEST)
-    # return Response({'message': 'invalid method'}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
+    elif request.method == 'DELETE':
+        user = get_object_or_404(User, email=request.GET.get('email'))
+        user_project = get_object_or_404(UserProjectModel, project_id=project_id, user_id=user.id)
+        user_project.delete()
+        return Response({'message': f"User has been removed from project"}, status=status.HTTP_200_OK)
+    return Response({'message': 'invalid method'}, status=status.HTTP_405_METHOD_NOT_ALLOWED)

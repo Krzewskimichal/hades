@@ -134,3 +134,5 @@ roles:
 'WA': 'Warehouseman'
 'EM': 'Employee'
 
+### DELETE
+127.0.0.1:8000/project_users/<project_id>?email=<user_email>
