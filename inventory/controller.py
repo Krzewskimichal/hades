@@ -16,3 +16,10 @@ def check_token(request: Request):
     if not jwt_token_data:
         return Response({'error': 'missing access token'})
     return get_object_or_404(User, id=jwt_token_data.get('user_id'))
+
+
+def check_if_admin(role: str) -> bool:
+    """
+        check if logged user is owner or admin
+    """
+    return True if role in ('OW', 'AD') else False

@@ -12,10 +12,13 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework import status
 from google.oauth2 import id_token
 from collections.abc import Iterable
+from django.http import JsonResponse
+from django.core import serializers
 
 # from utlis import get_jwt_data
 from utils import get_jwt_data
 from users.serializers import UserSerializer
+from inventory.models import ProjectModel, UserProjectModel
 
 
 @api_view(['GET', 'POST', 'UPDATE', 'DELETE'])
@@ -32,10 +35,10 @@ def user_view(request, pk=None):
 @permission_classes([AllowAny])
 def oauth(request: rest_framework.request.Request) -> Response:
     #todo add env file
-    if request.POST.get('provider') == 'google':
+    if request.data.get('provider') == 'google':
         #todo replace by function from utils
         CLIENT_ID = "260750330389-3l33066948vmlv0j40asketrnq0qt080.apps.googleusercontent.com"
-        token = request.POST.get('id_token')
+        token = request.data.get('id_token')
         try:
             token_data = id_token.verify_oauth2_token(token, google_requests.Request(), CLIENT_ID)
         except ValueError:
@@ -68,12 +71,20 @@ def oauth(request: rest_framework.request.Request) -> Response:
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
-def my_account(request: rest_framework.request.Request) -> Response:
+def my_account(request: rest_framework.request.Request) -> JsonResponse:
     data = get_jwt_data(request)
     if not data:
-        return Response({'error': 'missing access token'})
+        return JsonResponse({'error': 'missing access token'})
     user = get_object_or_404(User, id=data.get('user_id'))
-    return Response({
+    projects = UserProjectModel.objects.filter(user_id=user.id).select_related()
+    projects_data = [{
+        "id": project.project.id,
+        "name": project.project.name,
+        "role": project.role
+    } for project in projects]
+    return JsonResponse({
+        "id": user.id,
         "email": user.email,
-        "nickname": user.first_name
+        "nickname": user.first_name,
+        "projects": projects_data
     })

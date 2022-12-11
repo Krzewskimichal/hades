@@ -10,6 +10,8 @@ from rest_framework import status
 from collections.abc import Iterable
 from django.contrib.auth.models import User
 from django.shortcuts import get_list_or_404
+from django.http import JsonResponse
+from django.core import serializers
 
 from users.serializers import UserSerializer
 from inventory.serializers import InventoryModelSerializer, ProjectModelSerializer, UserProjectModelSerializer,\
@@ -17,51 +19,68 @@ from inventory.serializers import InventoryModelSerializer, ProjectModelSerializ
 from inventory.models import InventoryModel, ProjectModel, UserProjectModel, LocalizationModel, InventoryStatusModel,\
     InventoryTypeModel
 from utils import get_jwt_data
-from inventory.controller import check_token
+from inventory.controller import check_token, check_if_admin
 
 
 @api_view(['GET', 'POST', 'PATCH', 'DELETE'])
 @permission_classes([IsAuthenticated])
-def project_crud(request: Request, pk=None) -> Response:
+def project_crud(request: Request, pk=None) -> JsonResponse:
     """
         CRUD for project model
     """
     logged_user = check_token(request)
+    is_admin = False
+    if pk:
+        user_project = UserProjectModel.objects.get(project_id=pk, user_id=logged_user.id)
+        is_admin = check_if_admin(role=user_project.role)
+
     if request.method == 'GET':
         if pk:
             project = get_object_or_404(ProjectModel, id=pk)
             serializer = ProjectModelSerializer(project)
+            data = {}
+            data.update(serializer.data)
+            if is_admin:
+                user_project = UserProjectModel.objects.filter(project_id=pk).select_related()
+                user_project_data = [{
+                    "id": user.user.id,
+                    "username": user.user.username,
+                    "email": user.user.email,
+                    "role": user.role
+                } for user in user_project]
+                data["users"] = user_project_data
         else:
             instance = [instance.project_id for instance in get_list_or_404(UserProjectModel, user_id=logged_user.id)]
             instance = ProjectModel.objects.filter(id__in=instance)
             serializer = ProjectModelSerializer(instance, many=True)
-        return Response(serializer.data)
+            data = serializer.data
+        return JsonResponse(data)
     elif request.method == 'POST':
         try:
             project = ProjectModel(name=request.data.get('name'), company_name=request.data.get('company_name'))
             project.save()
             user_project = UserProjectModel(user_id=int(logged_user.id), project=project, role='OW')
             user_project.save()
-            return Response({'message': f"Project {project.name} created"}, status=status.HTTP_200_OK)
+            return JsonResponse({'message': f"Project {project.name} created"}, status=status.HTTP_200_OK)
         except django.db.utils.IntegrityError:
-            return Response({'message': 'missing requirement parameters'}, status=status.HTTP_400_BAD_REQUEST)
+            return JsonResponse({'message': 'missing requirement parameters'}, status=status.HTTP_400_BAD_REQUEST)
     elif request.method == 'PATCH':
-        if pk:
+        if pk and is_admin:
             project = get_object_or_404(ProjectModel, id=pk)
             serializer = ProjectModelSerializer(project, data=request.data, partial=True)
             if serializer.is_valid():
                 serializer.save()
-                return Response({'message': f"Project {project.name} updated"}, status=status.HTTP_200_OK)
-            return Response({'message': f"Cannot update {project.name} project, data invalid"}, status=status.HTTP_400_BAD_REQUEST)
-        return Response({'message': f"Missing project id!"}, status=status.HTTP_400_BAD_REQUEST)
+                return JsonResponse({'message': f"Project {project.name} updated"}, status=status.HTTP_200_OK)
+            return JsonResponse({'message': f"Cannot update {project.name} project, data invalid"}, status=status.HTTP_400_BAD_REQUEST)
+        return JsonResponse({'message': f"Missing project id!"}, status=status.HTTP_400_BAD_REQUEST)
     elif request.method == 'DELETE':
-        if pk:
+        if pk and is_admin:
             project = get_object_or_404(ProjectModel, id=pk)
             project.delete()
-            return Response({'message': f"Project {project.name} has been deleted"}, status=status.HTTP_200_OK)
-        return Response({'message': f"Missing project id!"}, status=status.HTTP_400_BAD_REQUEST)
+            return JsonResponse({'message': f"Project {project.name} has been deleted"}, status=status.HTTP_200_OK)
+        return JsonResponse({'message': f"Missing project id!"}, status=status.HTTP_400_BAD_REQUEST)
 
-    return Response({'message': 'invalid method'}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
+    return JsonResponse({'message': 'invalid method'}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
 
 
 @api_view(['GET', 'POST', 'PATCH', 'DELETE'])
@@ -248,9 +267,7 @@ def project_users(request: Request, project_id=None, pk=None) -> Response:
             serializer = UserSerializer(user)
         else:
             user_ids = [user.user_id for user in UserProjectModel.objects.filter(project_id=project_id)]
-            print(user_ids)
             users = get_list_or_404(User, id__in=user_ids)
-            #  todo add user role
             serializer = UserSerializer(users, many=True)
         return Response(serializer.data)
     elif request.method == 'POST':
