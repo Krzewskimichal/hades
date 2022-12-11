@@ -240,8 +240,8 @@ def inventory_crud(request: Request, project_id=None, pk=None):
             project = get_object_or_404(ProjectModel, id=project_id)
             inventory_item = InventoryModel(project_id=project.id, name=request.data.get('name'))
             serializer = InventoryModelSerializer(inventory_item, data=request.data)
-            if request.data.get('image'):
-                request.data['image'] = decode_image_base64(request.data.get('image'))
+            # if request.data.get('image'):
+            #     request.data['image'] = decode_image_base64(request.data.get('image'))
             if serializer.is_valid():
                 serializer.save()
             return Response({'message': f"Inventory item: {inventory_item.name} add to {project.name} project"}, status=status.HTTP_200_OK)
@@ -250,8 +250,8 @@ def inventory_crud(request: Request, project_id=None, pk=None):
     elif request.method == 'PATCH':
         if pk:
             inventory_item = get_object_or_404(InventoryModel, id=pk)
-            if request.data.get('image'):
-                request.data['image'] = decode_image_base64(request.data.get('image'))
+            # if request.data.get('image'):
+            #     request.data['image'] = decode_image_base64(request.data.get('image'))
             add_inventory_to_history(request, pk)
             serializer = InventoryModelSerializer(inventory_item, data=request.data, partial=True)
             if serializer.is_valid():
