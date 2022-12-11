@@ -49,6 +49,16 @@ def project_crud(request: Request, pk=None) -> JsonResponse:
                     "role": user.role
                 } for user in user_project]
                 data["users"] = user_project_data
+            else:
+                user_project = UserProjectModel.objects.filter(project_id=pk, user_id=logged_user.id).select_related()
+                user_project_data = [{
+                    "id": user.user.id,
+                    "username": user.user.username,
+                    "email": user.user.email,
+                    "role": user.role
+                } for user in user_project]
+                data["users"] = user_project_data
+
         else:
             instance = [instance.project_id for instance in get_list_or_404(UserProjectModel, user_id=logged_user.id)]
             instance = ProjectModel.objects.filter(id__in=instance)
