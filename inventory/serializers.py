@@ -40,7 +40,6 @@ class InventoryStatusModelSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
-#  todo join serializer
 class UserProjectSerializer(serializers.ModelSerializer):
     role = serializers.CharField(max_length=10)
 

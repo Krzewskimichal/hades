@@ -1,3 +1,4 @@
+import base64
 import django.db.utils
 from rest_framework import viewsets
 from rest_framework import permissions
@@ -9,6 +10,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from collections.abc import Iterable
 from django.contrib.auth.models import User
+from django.core.files.base import ContentFile
 from django.shortcuts import get_list_or_404
 from django.http import JsonResponse
 from django.core import serializers
@@ -19,7 +21,7 @@ from inventory.serializers import InventoryModelSerializer, ProjectModelSerializ
 from inventory.models import InventoryModel, ProjectModel, UserProjectModel, LocalizationModel, InventoryStatusModel,\
     InventoryTypeModel
 from utils import get_jwt_data
-from inventory.controller import check_token, check_if_admin
+from inventory.controller import check_token, check_if_admin, add_inventory_to_history, decode_image_base64
 
 
 @api_view(['GET', 'POST', 'PATCH', 'DELETE'])
@@ -238,6 +240,8 @@ def inventory_crud(request: Request, project_id=None, pk=None) -> Response:
             project = get_object_or_404(ProjectModel, id=project_id)
             inventory_item = InventoryModel(project_id=project.id, name=request.data.get('name'))
             serializer = InventoryModelSerializer(inventory_item, data=request.data)
+            if request.data.get('image'):
+                request.data['image'] = decode_image_base64(request.data.get('image'))
             if serializer.is_valid():
                 serializer.save()
             return Response({'message': f"Inventory item: {inventory_item.name} add to {project.name} project"}, status=status.HTTP_200_OK)
@@ -246,6 +250,9 @@ def inventory_crud(request: Request, project_id=None, pk=None) -> Response:
     elif request.method == 'PATCH':
         if pk:
             inventory_item = get_object_or_404(InventoryModel, id=pk)
+            if request.data.get('image'):
+                request.data['image'] = decode_image_base64(request.data.get('image'))
+            add_inventory_to_history(request, pk)
             serializer = InventoryModelSerializer(inventory_item, data=request.data, partial=True)
             if serializer.is_valid():
                 serializer.save()
@@ -283,6 +290,8 @@ def project_users(request: Request, project_id=None, pk=None) -> Response:
             return Response({'message': 'missing user email'}, status=status.HTTP_400_BAD_REQUEST)
         try:
             user = get_object_or_404(User, email=request.data.get('email'))
+            if UserProjectModel.objects.get(user_id=user.id, project_id=project_id):
+                return Response({'message': f"User {user.username} is already assign to project"}, status=status.HTTP_200_OK)
             user_project = UserProjectModel(project_id=project_id, user_id=user.id, role=request.data.get('role'))
             user_project.save()
             return Response({'message': f"Add user to project"}, status=status.HTTP_200_OK)
@@ -298,7 +307,7 @@ def project_users(request: Request, project_id=None, pk=None) -> Response:
     #         return Response({'message': f"Cannot update {inventory_item.name} item, data invalid"}, status=status.HTTP_400_BAD_REQUEST)
     #     return Response({'message': f"Missing item id!"}, status=status.HTTP_400_BAD_REQUEST)
     elif request.method == 'DELETE':
-        user = get_object_or_404(User, email=request.GET.get('email'))
+        user = get_object_or_404(User, email=request.GET.get('id'))
         user_project = get_object_or_404(UserProjectModel, project_id=project_id, user_id=user.id)
         user_project.delete()
         return Response({'message': f"User has been removed from project"}, status=status.HTTP_200_OK)

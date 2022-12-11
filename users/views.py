@@ -40,7 +40,7 @@ def oauth(request: rest_framework.request.Request) -> Response:
         CLIENT_ID = "260750330389-3l33066948vmlv0j40asketrnq0qt080.apps.googleusercontent.com"
         token = request.data.get('id_token')
         try:
-            token_data = id_token.verify_oauth2_token(token, google_requests.Request(), CLIENT_ID)
+            token_data = id_token.verify_oauth2_token(token, google_requests.Request(), CLIENT_ID, 100)
         except ValueError:
             return Response({'message': 'Invalid id_token'}, status=status.HTTP_400_BAD_REQUEST)
     else:
@@ -63,7 +63,7 @@ def oauth(request: rest_framework.request.Request) -> Response:
     refresh_token = RefreshToken.for_user(user)
     return Response({
         "email": user.email,
-        "nickname": user.first_name,
+        "username": user.first_name,
         "access_token": str(refresh_token.access_token),
         "refresh_token": str(refresh_token)
     })
@@ -85,6 +85,6 @@ def my_account(request: rest_framework.request.Request) -> JsonResponse:
     return JsonResponse({
         "id": user.id,
         "email": user.email,
-        "nickname": user.first_name,
+        "username": user.first_name,
         "projects": projects_data
     })

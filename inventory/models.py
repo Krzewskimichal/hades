@@ -28,6 +28,9 @@ class UserProjectModel(models.Model):
     def get_role(self) -> Role:
         return self.Role[self.role]
 
+    class Meta:
+        unique_together = ('user', 'project',)
+
 
 class InventoryTypeModel(models.Model):
     name = models.CharField(max_length=256)
@@ -69,3 +72,19 @@ class InventoryModel(models.Model):
 
     def __str__(self):
         return self.name
+
+
+class InventoryHistoryModel(models.Model):
+    inventory = models.ForeignKey(InventoryModel, on_delete=models.SET_NULL, null=True)
+    what_happen = models.CharField(max_length=256)
+    date = models.DateTimeField(auto_now_add=True)
+
+    class ChangeType(models.TextChoices):
+        OWNER = 'CO', 'change owner'
+        ADMIN = 'CL', 'change localization'
+        WAREHOUSEMAN = 'CS', 'change status'
+
+    change_type = models.CharField(max_length=2, choices=ChangeType.choices)
+
+    def get_role(self) -> ChangeType:
+        return self.ChangeType[self.change_type]
