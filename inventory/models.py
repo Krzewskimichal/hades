@@ -67,7 +67,7 @@ class InventoryModel(models.Model):
     status = models.ForeignKey(InventoryStatusModel, on_delete=models.SET_NULL, null=True)
     employee = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
     project = models.ForeignKey(ProjectModel, on_delete=models.SET_NULL, null=True)
-    qr_key = models.UUIDField(primary_key=False, default=uuid.uuid4, editable=True, null=True)
+    qr_key = models.CharField(unique=True, max_length=512, null=True)
     custom_field = models.JSONField(max_length=2048, null=True)
 
     def __str__(self):
