@@ -19,7 +19,7 @@ from users.serializers import UserSerializer
 from inventory.serializers import InventoryModelSerializer, ProjectModelSerializer, UserProjectModelSerializer,\
     LocalizationModelSerializer, InventoryStatusModelSerializer, InventoryTypeModelSerializer
 from inventory.models import InventoryModel, ProjectModel, UserProjectModel, LocalizationModel, InventoryStatusModel,\
-    InventoryTypeModel
+    InventoryTypeModel, InventoryHistoryModel
 from utils import get_jwt_data
 from inventory.controller import check_token, check_if_admin, add_inventory_to_history, decode_image_base64
 
@@ -211,20 +211,30 @@ def inventory_type_crud(request: Request, project_id=None, pk=None) -> Response:
 
 @api_view(['GET', 'POST', 'PATCH', 'DELETE'])
 @permission_classes([IsAuthenticated])
-def inventory_crud(request: Request, project_id=None, pk=None) -> Response:
+def inventory_crud(request: Request, project_id=None, pk=None):
     """
         crud for inventory item available in project
     """
 
     logged_user = check_token(request)
     if request.method == 'GET':
+        data = {}
         if pk:
             inventory = get_object_or_404(InventoryModel, id=pk)
             serializer = InventoryModelSerializer(inventory)
+            data.update(serializer.data)
+            history = InventoryHistoryModel.objects.filter(inventory_id=pk)
+            history_data = [{
+                "item": hist.inventory.id,
+                "change": hist.what_happen,
+                "date": hist.date
+            } for hist in history]
+            data['history'] = history_data
         else:
             inventory = InventoryModel.objects.filter(project_id=project_id)
             serializer = InventoryModelSerializer(inventory, many=True)
-        return Response(serializer.data)
+            data.update(serializer.data)
+        return JsonResponse(data)
     elif request.method == 'POST':
         try:
             project = get_object_or_404(ProjectModel, id=project_id)
