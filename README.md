@@ -86,7 +86,7 @@ inventory_item_status -> 127.0.0.1:8000/inventory-status/<project_id>
 # Inventory item
 ### GET - get all item assigment to project or item info by id
 127.0.0.1:8000/inventory-item/<project_id>
-127.0.0.1:8000/inventory-item/<project_id>/<localization_id>
+127.0.0.1:8000/inventory-item/<project_id>/<inventory-item_id>
 
 ### POST - create item
 127.0.0.1:8000/inventory-item/<project_id>
