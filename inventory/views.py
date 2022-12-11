@@ -233,7 +233,7 @@ def inventory_crud(request: Request, project_id=None, pk=None):
         else:
             inventory = InventoryModel.objects.filter(project_id=project_id)
             serializer = InventoryModelSerializer(inventory, many=True)
-            data.update(serializer.data)
+            data.update({"items": serializer.data})
         return JsonResponse(data)
     elif request.method == 'POST':
         try:
