@@ -34,10 +34,10 @@ def project_crud(request: Request, pk=None) -> JsonResponse:
         is_admin = check_if_admin(project_id=pk, user_id=logged_user.id)
 
     if request.method == 'GET':
+        data = {}
         if pk:
             project = get_object_or_404(ProjectModel, id=pk)
             serializer = ProjectModelSerializer(project)
-            data = {}
             data.update(serializer.data)
             if is_admin:
                 user_project = UserProjectModel.objects.filter(project_id=pk).select_related()
@@ -61,7 +61,7 @@ def project_crud(request: Request, pk=None) -> JsonResponse:
             instance = [instance.project_id for instance in get_list_or_404(UserProjectModel, user_id=logged_user.id)]
             instance = ProjectModel.objects.filter(id__in=instance)
             serializer = ProjectModelSerializer(instance, many=True)
-            data = serializer.data
+            data.update({"projects": serializer.data})
         return JsonResponse(data)
     elif request.method == 'POST':
         try:
