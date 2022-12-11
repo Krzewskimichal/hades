@@ -31,8 +31,7 @@ def project_crud(request: Request, pk=None) -> JsonResponse:
     logged_user = check_token(request)
     is_admin = False
     if pk:
-        user_project = UserProjectModel.objects.get(project_id=pk, user_id=logged_user.id)
-        is_admin = check_if_admin(role=user_project.role)
+        is_admin = check_if_admin(project_id=pk, user_id=logged_user.id)
 
     if request.method == 'GET':
         if pk:
@@ -58,7 +57,6 @@ def project_crud(request: Request, pk=None) -> JsonResponse:
                     "role": user.role
                 } for user in user_project]
                 data["users"] = user_project_data
-
         else:
             instance = [instance.project_id for instance in get_list_or_404(UserProjectModel, user_id=logged_user.id)]
             instance = ProjectModel.objects.filter(id__in=instance)

@@ -3,6 +3,7 @@ from rest_framework.response import Response
 from rest_framework.generics import get_object_or_404
 from django.contrib.auth.models import User
 
+from inventory.models import UserProjectModel
 from utils import get_jwt_data
 
 
@@ -18,8 +19,17 @@ def check_token(request: Request):
     return get_object_or_404(User, id=jwt_token_data.get('user_id'))
 
 
-def check_if_admin(role: str) -> bool:
+def check_role(project_id: str, user_id: str) -> str:
+    """
+        check role of logged user in project
+    """
+    user_project = UserProjectModel.objects.get(project_id=project_id, user_id=user_id)
+    return user_project.role
+
+
+def check_if_admin(project_id: str, user_id: str) -> bool:
     """
         check if logged user is owner or admin
     """
+    role = check_role(project_id, user_id)
     return True if role in ('OW', 'AD') else False
