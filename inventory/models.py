@@ -58,7 +58,7 @@ class InventoryStatusModel(models.Model):
 
 class InventoryModel(models.Model):
     inventory_type = models.ForeignKey(InventoryTypeModel, on_delete=models.SET_NULL, null=True)
-    image = models.ImageField(upload_to='images/', default=None, blank=True)
+    image = models.ImageField(upload_to='images/', default=None, blank=True, null=True)
     name = models.CharField(max_length=256)
     brand = models.CharField(max_length=256, blank=True)
     model = models.CharField(max_length=256, blank=True)
