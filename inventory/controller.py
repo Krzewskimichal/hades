@@ -89,9 +89,12 @@ def add_inventory_to_history(request, pk):
             if value:
                 inventory = InventoryModel.objects.filter(id=pk).select_related()[0]
                 user = User.objects.get(id=value)
-                message = full_phrases[key].format(inventory.employee.username, user.username)
-                inventory_history = InventoryHistoryModel(inventory_id=pk, what_happen=message, change_type=key)
-                inventory_history.save()
+                user_username = user.username if user.username else "no one"
+                inventory_username = inventory.employee.username if inventory.employee else "no one"
+                if user_username != inventory_username:
+                    message = full_phrases[key].format(inventory_username, user_username)
+                    inventory_history = InventoryHistoryModel(inventory_id=pk, what_happen=message, change_type=key)
+                    inventory_history.save()
             return True
         except django.db.utils.IntegrityError:
             return False

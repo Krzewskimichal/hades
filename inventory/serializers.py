@@ -5,6 +5,8 @@ from inventory import models
 
 
 class InventoryModelSerializer(serializers.ModelSerializer):
+    image = serializers.ImageField(required=False, allow_null=True)
+
     class Meta:
         model = models.InventoryModel
         fields = '__all__'
