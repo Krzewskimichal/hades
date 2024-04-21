@@ -6,6 +6,7 @@ after create postgresql database on 127.0.0.1:5432
 python manage.py migrate
 run python manage.py runserver
 
+For docker-compose(docker-compose up)
 
 # api
 endpoints:

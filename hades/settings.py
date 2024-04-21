@@ -13,6 +13,10 @@ import os
 
 from pathlib import Path
 from datetime import timedelta
+from dotenv import load_dotenv
+# Load environment variables from .env file
+load_dotenv()
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -82,11 +86,11 @@ WSGI_APPLICATION = 'hades.wsgi.application'
 DATABASES = {
    'default': {
        'ENGINE': 'django.db.backends.postgresql',
-       'NAME': 'hades_database',
-       'USER': 'postgres',
-       'PASSWORD': '',
-       'HOST': '127.0.0.1',
-       'PORT': '5432',
+       'NAME': os.environ.get('POSTGRES_DB'),
+       'USER': os.getenv('POSTGRES_USER'),
+       'PASSWORD': os.getenv('POSTGRES_PASSWORD'),
+       'HOST': os.getenv('POSTGRES_HOST'),
+       'PORT': os.getenv('POSTGRES_PORT'),
    }
 }
 

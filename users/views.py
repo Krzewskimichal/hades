@@ -1,3 +1,4 @@
+import os
 import rest_framework.request
 from google.auth.transport import requests as google_requests
 from django.contrib.auth.base_user import BaseUserManager
@@ -34,10 +35,8 @@ def user_view(request, pk=None):
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def oauth(request: rest_framework.request.Request) -> Response:
-    #todo add env file
     if request.data.get('provider') == 'google':
-        #todo replace by function from utils
-        CLIENT_ID = "260750330389-3l33066948vmlv0j40asketrnq0qt080.apps.googleusercontent.com"
+        CLIENT_ID = os.getenv('GOOGLE_LOGIN_CLIENT_ID')
         token = request.data.get('id_token')
         try:
             token_data = id_token.verify_oauth2_token(token, google_requests.Request(), CLIENT_ID, 100)

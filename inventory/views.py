@@ -173,7 +173,6 @@ def inventory_type_crud(request: Request, project_id=None, pk=None) -> Response:
     """
         crud for inventory status available in project
     """
-
     logged_user = check_token(request)
     if request.method == 'GET':
         if pk:
@@ -244,7 +243,9 @@ def inventory_crud(request: Request, project_id=None, pk=None):
             #     request.data['image'] = decode_image_base64(request.data.get('image'))
             if serializer.is_valid():
                 serializer.save()
-            return Response({'message': f"Inventory item: {inventory_item.name} add to {project.name} project"}, status=status.HTTP_200_OK)
+                return Response({'message': f"Inventory item: {inventory_item.name} add to {project.name} project"}, status=status.HTTP_200_OK)
+            return Response({'message': f"Cannot create {inventory_item.name} item, data invalid"},
+                            status=status.HTTP_400_BAD_REQUEST)
         except django.db.utils.IntegrityError:
             return Response({'message': 'missing requirement parameters'}, status=status.HTTP_400_BAD_REQUEST)
     elif request.method == 'PATCH':
